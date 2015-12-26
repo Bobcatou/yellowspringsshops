@@ -107,12 +107,46 @@ function be_remove_genesis_page_templates( $page_templates ) {
 add_filter( 'theme_page_templates', 'be_remove_genesis_page_templates' );
 
 
+/**********************************
+ *
+ * Replace Header Site Title with Wide Header
+ *
+ * @author AlphaBlossom / Tony Eppright
+ * @link http://www.alphablossom.com/a-better-wordpress-genesis-responsive-logo-header/
+ *
+ * @edited by Sridhar Katakam
+ * @link https://sridharkatakam.com/use-inline-logo-instead-background-image-genesis/
+ *
+************************************/
+add_filter( 'genesis_seo_title', 'custom_header_inline_logo', 10, 3 );
+function custom_header_inline_logo( $title, $inside, $wrap ) {
 
-/**
- * Removes Dashboard Widgets
- */
-function remove_dashboard_meta() {
-        remove_meta_box( 'dashboard_primary', 'dashboard', 'normal' );
+	$logo = '<img src="' . get_stylesheet_directory_uri() . '/images/header.jpg" alt="' . esc_attr( get_bloginfo( 'name' ) ) . ' Homepage" />';
+
+	$inside = sprintf( '<a href="%s">%s<span class="screen-reader-text">%s</span></a>', trailingslashit( home_url() ), $logo, get_bloginfo( 'name' ) );
+
+	// Determine which wrapping tags to use
+	$wrap = genesis_is_root_page() && 'title' === genesis_get_seo_option( 'home_h1_on' ) ? 'h1' : 'p';
+
+	// A little fallback, in case an SEO plugin is active
+	$wrap = genesis_is_root_page() && ! genesis_get_seo_option( 'home_h1_on' ) ? 'h1' : $wrap;
+
+	// And finally, $wrap in h1 if HTML5 & semantic headings enabled
+	$wrap = genesis_html5() && genesis_get_seo_option( 'semantic_headings' ) ? 'h1' : $wrap;
+
+	return sprintf( '<%1$s %2$s>%3$s</%1$s>', $wrap, genesis_attr( 'site-title' ), $inside );
+
 }
-add_action( 'admin_init', 'remove_dashboard_meta' );
+
+
+// Remove header's wrap
+add_theme_support( 'genesis-structural-wraps', array(
+	// 'header',
+	'nav',
+	'subnav',
+	'site-inner',
+	'footer-widgets',
+	'footer'
+) );
+
 
